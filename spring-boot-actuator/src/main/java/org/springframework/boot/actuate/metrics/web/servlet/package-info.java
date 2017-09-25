@@ -15,6 +15,6 @@
  */
 
 /**
- * Metrics support for Servlet-based web applications.
+ * Actuator support for Spring MVC metrics.
  */
 package org.springframework.boot.actuate.metrics.web.servlet;

@@ -28,6 +28,7 @@ import org.springframework.beans.factory.BeanClassLoaderAware;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.jdbc.DatabaseDriver;
 import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.context.EnvironmentAware;
@@ -179,7 +180,7 @@ public class DataSourceProperties
 	 * @return a {@link DataSourceBuilder} initialized with the customizations defined on
 	 * this instance
 	 */
-	public DataSourceBuilder initializeDataSourceBuilder() {
+	public DataSourceBuilder<?> initializeDataSourceBuilder() {
 		return DataSourceBuilder.create(getClassLoader()).type(getType())
 				.driverClassName(determineDriverClassName()).url(determineUrl())
 				.username(determineUsername()).password(determinePassword());

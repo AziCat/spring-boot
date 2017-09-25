@@ -8,14 +8,14 @@ JPA for database access just include the `spring-boot-starter-data-jpa` dependen
 your project, and you are good to go.
 
 For complete details see the
-http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#using-boot-starter-poms[reference documentation]
+http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#using-boot-starter[reference documentation]
 
 == Community Contributions
 If you create a starter for a technology that is not already in the standard list we can
 list it here. Just send a pull request for this page.
 
 WARNING: While the
-http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#using-boot-starter-poms[reference documentation]
+http://docs.spring.io/spring-boot/docs/current/reference/htmlsingle/#using-boot-starter[reference documentation]
 mentions that 3rd party starters should not start with `spring-boot`, some starters
 do as they were designed before this was clarified.
 
@@ -37,6 +37,9 @@ do as they were designed before this was clarified.
 | https://azure.microsoft.com/[Azure]
 | https://github.com/Microsoft/azure-spring-boot-starters
 
+| https://github.com/vladimir-bukhtoyarov/bucket4j/[Bucket4j]
+| https://github.com/MarcGiffing/bucket4j-spring-boot-starter
+
 | https://camunda.org/[Camunda BPM]
 | https://github.com/camunda/camunda-bpm-spring-boot-starter
 
@@ -55,13 +58,16 @@ do as they were designed before this was clarified.
 | DataSource decorating (https://github.com/p6spy/p6spy[P6Spy], https://github.com/ttddyy/datasource-proxy[datasource-proxy], https://github.com/vladmihalcea/flexy-pool[FlexyPool])
 | https://github.com/gavlyukovskiy/spring-boot-data-source-decorator
 
+| ErroREST exception handler
+| https://github.com/mkopylec/errorest-spring-boot-starter
+
 | http://ff4j.org/[Feature Flipping For Java (FF4J)]
 | https://github.com/clun/ff4j/
 
 | https://www.google.com/recaptcha[Google's reCAPTCHA]
 | https://github.com/mkopylec/recaptcha-spring-boot-starter
 
-| http://graphql.org/[GraphQL] with https://github.com/graphql-java/[GraphQL Java]
+| http://graphql.org/[GraphQL] and https://github.com/graphql/graphiql[GraphiQL] with https://github.com/graphql-java/[GraphQL Java]
 | https://github.com/graphql-java/graphql-spring-boot
 
 | http://graphql.org/[GraphQL]
@@ -132,6 +138,9 @@ do as they were designed before this was clarified.
 
 | SSH Daemon
 | https://github.com/anand1st/sshd-shell-spring-boot
+
+| https://github.com/StripesFramework/stripes[Stripes]
+| https://github.com/juanpablo-santos/stripes-spring-boot
 
 | http://teiid.org/[Teiid]
 | https://github.com/teiid/teiid-spring-boot

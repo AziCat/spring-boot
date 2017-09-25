@@ -75,7 +75,7 @@ rules of thumb:
   are `server.port`, `server.address` etc. In a running Actuator app look at the
   `configprops` endpoint.
 * Look for uses of the `bind` method on the `Binder` to pull configuration values explicitly out of the
-  `Environment` in a relaxed manner. It is often is used with a prefix.
+  `Environment` in a relaxed manner. It is often used with a prefix.
 * Look for `@Value` annotations that bind directly to the `Environment`.
 * Look for `@ConditionalOnExpression` annotations that switch features on and off in
   response to SpEL expressions, normally evaluated with placeholders resolved from the
@@ -125,7 +125,7 @@ TIP: The `Environment` will already have been prepared with all the usual proper
 that Spring Boot loads by default. It is therefore possible to get the location of the
 file from the environment. This example adds the `custom-resource` property source at the
 end of the list so that a key defined in any of the usual other locations takes
-precedence. A custom implementation may obviously defines another order.
+precedence. A custom implementation may obviously define another order.
 
 NOTE: While using `@PropertySource` on your `@SpringBootApplication` seems convenient and
 easy enough to load a custom resource in the `Environment`, we do not recommend it as
@@ -183,6 +183,9 @@ Maven '`project properties`' via `@..@` placeholders, e.g.
 	app.encoding=@project.build.sourceEncoding@
 	app.java.version=@java.version@
 ----
+
+NOTE: Only production configuration is filtered that way (i.e. no filtering is applied on
+`src/test/resources`).
 
 TIP: The `spring-boot:run` can add `src/main/resources` directly to the classpath
 (for hot reloading purposes) if you enable the `addResources` flag. This circumvents
@@ -835,7 +838,7 @@ nuclear option is to add your own `TomcatServletWebServerFactory`.
 
 [[howto-enable-multiple-connectors-in-tomcat]]
 === Enable Multiple Connectors with Tomcat
-Add a `org.apache.catalina.connector.Connector` to the
+Add an `org.apache.catalina.connector.Connector` to the
 `TomcatServletWebServerFactory` which can allow multiple connectors, e.g. HTTP and
 HTTPS connector:
 
@@ -1668,7 +1671,10 @@ configuration properties. Some of them are automatically detected according to t
 so you shouldn't have to set them.
 
 The `spring.jpa.hibernate.ddl-auto` is a special case in that it has different defaults
-depending on whether you are using an embedded database (`create-drop`) or not (`none`).
+depending on runtime conditions. If an embedded database is used and no schema manager,
+such as Liquibase or Flyway, is handling the `DataSource` it then defaults to
+`create-drop`. In all other cases it defaults to `none`.
+
 The dialect to use is also automatically detected based on the current `DataSource` but
 you can set `spring.jpa.database` yourself if you want to be explicit and bypass that
 check on startup.
@@ -1887,12 +1893,13 @@ database. This is controlled through two external properties:
 === Initialize a database using Hibernate
 You can set `spring.jpa.hibernate.ddl-auto` explicitly and the standard Hibernate property
 values are `none`, `validate`, `update`, `create`, `create-drop`. Spring Boot chooses a
-default value for you based on whether it thinks your database is embedded (default
-`create-drop`) or not (default `none`). An embedded database is detected by looking at the
-`Connection` type: `hsqldb`, `h2` and `derby` are embedded, the rest are not. Be careful
-when switching from in-memory to a '`real`' database that you don't make assumptions about
-the existence of the tables and data in the new platform. You either have to set `ddl-auto`
-explicitly, or use one of the other mechanisms to initialize the database.
+default value for you based on whether it thinks your database is embedded: default to
+`create-drop` if no schema manager has been detected, `none` in all other cases. An
+embedded database is detected by looking at the `Connection` type: `hsqldb`, `h2` and
+`derby` are embedded, the rest are not. Be careful when switching from in-memory to a
+'`real`' database that you don't make assumptions about the existence of the tables and
+data in the new platform. You either have to set `ddl-auto` explicitly, or use one of the
+other mechanisms to initialize the database.
 
 NOTE: You can output the schema creation by enabling the `org.hibernate.SQL` logger. This
 is done for you automatically if you enable the <<boot-features-logging-console-output,debug mode>>.
@@ -1961,12 +1968,13 @@ To automatically run Flyway database migrations on startup, add the
 
 The migrations are scripts in the form `V<VERSION>__<NAME>.sql` (with `<VERSION>` an
 underscore-separated version, e.g. '`1`' or '`2_1`'). By default they live in a folder
-`classpath:db/migration` but you can modify that using `flyway.locations`. You can also
-add a special `{vendor}` placeholder to use vendor-specific scripts. Assume the following:
+`classpath:db/migration` but you can modify that using `spring.flyway.locations`. You can
+also add a special `{vendor}` placeholder to use vendor-specific scripts. Assume the
+following:
 
 [source,properties,indent=0]
 ----
-	flyway.locations=db/migration/{vendor}
+	spring.flyway.locations=db/migration/{vendor}
 ----
 
 Rather than using `db/migration`, this configuration will set the folder to use according
@@ -1992,7 +2000,7 @@ By default Flyway will autowire the (`@Primary`) `DataSource` in your context an
 use that for migrations. If you like to use a different `DataSource` you can create
 one and mark its `@Bean` as `@FlywayDataSource` - if you do that remember to create
 another one and mark it as `@Primary` if you want two data sources.
-Or you can use Flyway's native `DataSource` by setting `flyway.[url,user,password]`
+Or you can use Flyway's native `DataSource` by setting `spring.flyway.[url,user,password]`
 in external properties.
 
 There is a {github-code}/spring-boot-samples/spring-boot-sample-flyway[Flyway sample] so
@@ -2001,11 +2009,17 @@ you can see how to set things up.
 You can also use Flyway to provide data for specific scenarios. For example, you can
 place test-specific migrations in `src/test/resources` and they will only be run when your
 application starts for testing. If you want to be more sophisticated you can use
-profile-specific configuration to customize `flyway.locations` so that certain migrations
-will only run when a particular profile is active. For example, in
-`application-dev.properties` you could set `flyway.locations` to
-`classpath:/db/migration, classpath:/dev/db/migration` and migrations in `dev/db/migration`
-will only run when the `dev` profile is active.
+profile-specific configuration to customize `spring.flyway.locations` so that certain
+migrations will only run when a particular profile is active. For example, in
+`application-dev.properties`:
+
+[source,properties,indent=0]
+----
+	spring.flyway.locations=classpath:/db/migration,classpath:/dev/db/migration
+----
+
+With that setup, migrations in `dev/db/migration` will only run when the `dev` profile is
+active.
 
 
 
@@ -2015,14 +2029,14 @@ To automatically run Liquibase database migrations on startup, add the
 `org.liquibase:liquibase-core` to your classpath.
 
 The master change log is by default read from `db/changelog/db.changelog-master.yaml` but
-can be set using `liquibase.change-log`. In addition to YAML, Liquibase also supports
-JSON, XML, and SQL change log formats.
+can be set using `spring.liquibase.change-log`. In addition to YAML, Liquibase also
+supports JSON, XML, and SQL change log formats.
 
 By default Liquibase will autowire the (`@Primary`) `DataSource` in your context and use
 that for migrations. If you like to use a different `DataSource` you can create one and
 mark its `@Bean` as `@LiquibaseDataSource` - if you do that remember to create another one
 and mark it as `@Primary` if you want two data sources. Or you can use Liquibase's native
-`DataSource` by setting `liquibase.[url,user,password]` in external properties.
+`DataSource` by setting `spring.liquibase.[url,user,password]` in external properties.
 
 See
 {sc-spring-boot-autoconfigure}/liquibase/LiquibaseProperties.{sc-ext}[`LiquibaseProperties`]
@@ -2113,7 +2127,7 @@ an internal network for management and an external one for user applications) yo
 also set `management.address` to a valid IP address that the server is able to bind to.
 
 For more detail look at the
-{sc-spring-boot-actuator}/autoconfigure/ManagementServerProperties.{sc-ext}[`ManagementServerProperties`]
+{sc-spring-boot-actuator}/autoconfigure/web/ManagementServerProperties.{sc-ext}[`ManagementServerProperties`]
 source code and
 _<<production-ready-features.adoc#production-ready-customizing-management-server-port>>_
 in the '`Production-ready features`' section.
@@ -2241,8 +2255,8 @@ by adding some entries to `application.properties`, e.g.
 
 [source,properties,indent=0]
 ----
-	server.tomcat.remote_ip_header=x-forwarded-for
-	server.tomcat.protocol_header=x-forwarded-proto
+	server.tomcat.remote-ip-header=x-forwarded-for
+	server.tomcat.protocol-header=x-forwarded-proto
 ----
 
 (The presence of either of those properties will switch on the valve. Or you can add the

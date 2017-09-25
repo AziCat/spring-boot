@@ -560,7 +560,7 @@ the search order becomes:
 
 This search ordering allows you to specify default values in one configuration file
 and then selectively override those values in another. You can provide default values
-for you application in `application.properties` (or whatever other basename you choose
+for your application in `application.properties` (or whatever other basename you choose
 with `spring.config.name`) in one of the default locations. These default values can
 then be overriden at runtime with a different file located in one of the custom
 locations.
@@ -980,7 +980,7 @@ does not inject other beans from the context. Having said that, The
 `@EnableConfigurationProperties` annotation is _also_ automatically applied to your project
 so that any _existing_ bean annotated with `@ConfigurationProperties` will be configured
 from the `Environment`. You could shortcut `MyConfiguration` above by making sure
-`FooProperties` is a already a bean:
+`FooProperties` is already a bean:
 
 [source,java,indent=0]
 ----
@@ -1345,12 +1345,12 @@ See _<<boot-features-external-config-profile-specific-properties>>_ for details.
 Spring Boot uses http://commons.apache.org/logging[Commons Logging] for all internal
 logging, but leaves the underlying log implementation open. Default configurations are
 provided for
-http://docs.oracle.com/javase/7/docs/api/java/util/logging/package-summary.html[Java Util Logging],
+http://docs.oracle.com/javase/8/docs/api/java/util/logging/package-summary.html[Java Util Logging],
 http://logging.apache.org/log4j/2.x/[Log4J2] and http://logback.qos.ch/[Logback]. In each
 case loggers are pre-configured to use console output with optional file output also
 available.
 
-By default, If you use the '`Starters`', Logback will be used for logging. Appropriate
+By default, if you use the '`Starters`', Logback will be used for logging. Appropriate
 Logback routing is also included to ensure that dependent libraries that use
 Java Util Logging, Commons Logging, Log4J or SLF4J will all work correctly.
 
@@ -1900,10 +1900,11 @@ can be achieved as follows:
 ----
 
 You can also customize the static resource locations using
-`spring.resources.static-locations` (replacing the default values with a list of directory
-locations). If you do this the default welcome page detection will switch to your custom
-locations, so if there is an `index.html` in any of your locations on startup, it will be
-the home page of the application.
+`spring.resources.static-locations` (replacing the default values with a list
+of directory locations). The root Servlet context path `"/"` will be automatically
+added as a location as well. If you do this the default welcome page detection will
+switch to your custom locations, so if there is an `index.html` in any of your locations
+on startup, it will be the home page of the application.
 
 In addition to the '`standard`' static resource locations above, a special case is made
 for http://www.webjars.org/[Webjars content]. Any resources with a path in `+/webjars/**+`
@@ -2249,7 +2250,7 @@ Unlike Spring MVC, it does not require the Servlet API, is fully asynchronous an
 non-blocking, and implements the http://www.reactive-streams.org/[Reactive Streams]
 specification through http://projectreactor.io/[the Reactor project].
 
-Spring WebFlux comes in two flavors — the annotation-based one is quite close to the
+Spring WebFlux comes in two flavors; the annotation-based one is quite close to the
 Spring MVC model we know:
 
 [source,java,indent=0]
@@ -2751,226 +2752,6 @@ explicitly configure the paths that you do want to override.
 
 
 
-[[boot-features-security-oauth2]]
-=== OAuth2
-If you have `spring-security-oauth2` on your classpath you can take advantage of some
-auto-configuration to make it easy to set up Authorization or Resource Server. For full
-details, see the {spring-security-oauth2-reference}[Spring Security OAuth 2 Developers
-Guide].
-
-
-
-[[boot-features-security-oauth2-authorization-server]]
-==== Authorization Server
-To create an Authorization Server and grant access tokens you need to use
-`@EnableAuthorizationServer` and provide `security.oauth2.client.client-id` and
-`security.oauth2.client.client-secret]` properties. The client will be registered for you
-in an in-memory repository.
-
-Having done that you will be able to use the client credentials to create an access token,
-for example:
-
-[indent=0]
-----
-	$ curl client:secret@localhost:8080/oauth/token -d grant_type=password -d username=user -d password=pwd
-----
-
-The basic auth credentials for the `/token` endpoint are the `client-id` and
-`client-secret`. The user credentials are the normal Spring Security user details (which
-default in Spring Boot to "`user`" and a random password).
-
-To switch off the auto-configuration and configure the Authorization Server features
-yourself just add a `@Bean` of type `AuthorizationServerConfigurer`.
-
-
-
-[[boot-features-security-oauth2-resource-server]]
-==== Resource Server
-To use the access token you need a Resource Server (which can be the same as the
-Authorization Server). Creating a Resource Server is easy, just add
-`@EnableResourceServer` and provide some configuration to allow the server to decode
-access tokens. If your application is also an Authorization Server it already knows how
-to decode tokens, so there is nothing else to do. If your app is a standalone service then you
-need to give it some more configuration, one of the following options:
-
-* `security.oauth2.resource.user-info-uri` to use the `/me` resource (e.g.
-`\https://uaa.run.pivotal.io/userinfo` on PWS)
-
-* `security.oauth2.resource.token-info-uri` to use the token decoding endpoint (e.g.
-`\https://uaa.run.pivotal.io/check_token` on PWS).
-
-If you specify both the `user-info-uri` and the `token-info-uri` then you can set a flag
-to say that one is preferred over the other (`prefer-token-info=true` is the default).
-
-Alternatively (instead of `user-info-uri` or `token-info-uri`) if the tokens are JWTs you
-can configure a `security.oauth2.resource.jwt.key-value` to decode them locally (where the
-key is a verification key). The verification key value is either a symmetric secret or
-PEM-encoded RSA public key. If you don't have the key and it's public you can provide a
-URI where it can be downloaded (as a JSON object with a "`value`" field) with
-`security.oauth2.resource.jwt.key-uri`. E.g. on PWS:
-
-[indent=0]
-----
-	$ curl https://uaa.run.pivotal.io/token_key
-	{"alg":"SHA256withRSA","value":"-----BEGIN PUBLIC KEY-----\nMIIBI...\n-----END PUBLIC KEY-----\n"}
-----
-
-WARNING: If you use the `security.oauth2.resource.jwt.key-uri` the authorization server
-needs to be running when your application starts up. It will log a warning if it can't
-find the key, and tell you what to do to fix it.
-
-OAuth2 resources are protected by a filter chain with order
-`security.oauth2.resource.filter-order` and the default is after the filter protecting the
-actuator endpoints by default (so actuator endpoints will stay on HTTP Basic unless you
-change the order).
-
-
-
-[[boot-features-security-oauth2-token-type]]
-=== Token Type in User Info
-Google, and certain other 3rd party identity providers, are more strict about the token
-type name that is sent in the headers to the user info endpoint. The default is "`Bearer`"
-which suits most providers and matches the spec, but if you need to change it you can set
-`security.oauth2.resource.token-type`.
-
-
-
-[[boot-features-security-custom-user-info]]
-=== Customizing the User Info RestTemplate
-If you have a `user-info-uri`, the resource server features use an `OAuth2RestTemplate`
-internally to fetch user details for authentication. This is provided as a `@Bean` of
-type `UserInfoRestTemplateFactory`. The default should be fine for most providers, but
-occasionally you might need to add additional interceptors, or change the request
-authenticator (which is how the token gets attached to outgoing requests). To add a
-customization just create a bean of type `UserInfoRestTemplateCustomizer` - it has a
-single method that will be called after the bean is created but before it is initialized.
-The rest template that is being customized here is _only_ used internally to carry out
-authentication. Alternatively, you could define your own `UserInfoRestTemplateFactory`
-`@Bean` to take full control.
-
-[TIP]
-====
-To set an RSA key value in YAML use the "`pipe`" continuation marker to split it over
-multiple lines ("`|`") and remember to indent the key value (it's a standard YAML
-language feature). Example:
-
-[source,yaml,indent=0]
-----
-	security:
-		oauth2:
-			resource:
-				jwt:
-					keyValue: |
-						-----BEGIN PUBLIC KEY-----
-						MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC...
-						-----END PUBLIC KEY-----
-----
-====
-
-
-
-[[boot-features-security-custom-user-info-client]]
-==== Client
-To make your web-app into an OAuth2 client you can simply add `@EnableOAuth2Client` and
-Spring Boot will create a `OAuth2ClientContext` and `OAuth2ProtectedResourceDetails` that
-are necessary to create an `OAuth2RestOperations`. Spring Boot does not automatically
-create such bean but you can easily create your own:
-
-[source,java,indent=0]
-----
-
-	@Bean
-	public OAuth2RestTemplate oauth2RestTemplate(OAuth2ClientContext oauth2ClientContext,
-			OAuth2ProtectedResourceDetails details) {
-		return new OAuth2RestTemplate(details, oauth2ClientContext);
-	}
-----
-
-NOTE: You may want to add a qualifier and review your configuration as more than one
-`RestTemplate` may be defined in your application.
-
-This configuration uses `security.oauth2.client.*` as credentials (the same as you might
-be using in the Authorization Server), but in addition it will need to know the
-authorization and token URIs in the Authorization Server. For example:
-
-.application.yml
-[source,yaml,indent=0]
-----
-	security:
-		oauth2:
-			client:
-				clientId: bd1c0a783ccdd1c9b9e4
-				clientSecret: 1a9030fbca47a5b2c28e92f19050bb77824b5ad1
-				accessTokenUri: https://github.com/login/oauth/access_token
-				userAuthorizationUri: https://github.com/login/oauth/authorize
-				clientAuthenticationScheme: form
-----
-
-An application with this configuration will redirect to Github for authorization when you
-attempt to use the `OAuth2RestTemplate`. If you are already signed into Github you won't
-even notice that it has authenticated.  These specific credentials will only work if your
-application is running on port 8080 (register your own client app in Github or other
-provider for more flexibility).
-
-To limit the scope that the client asks for when it obtains an access token you can set
-`security.oauth2.client.scope` (comma separated or an array in YAML). By default the scope
-is empty and it is up to Authorization Server to decide what the defaults should be,
-usually depending on the settings in the client registration that it holds.
-
-NOTE: There is also a setting for `security.oauth2.client.client-authentication-scheme`
-which defaults to "`header`" (but you might need to set it to "`form`" if, like Github for
-instance, your OAuth2 provider doesn't like header authentication). In fact, the
-`security.oauth2.client.*` properties are bound to an instance of
-`AuthorizationCodeResourceDetails` so all its properties can be specified.
-
-TIP: In a non-web application you can still create an `OAuth2RestOperations` and it
-is still wired into the `security.oauth2.client.*` configuration. In this case it is a
-"`client credentials token grant`" you will be asking for if you use it (and there is no
-need to use `@EnableOAuth2Client` or `@EnableOAuth2Sso`). To prevent that infrastructure
-to be defined, just remove the `security.oauth2.client.client-id` from your configuration
-(or make it the empty string).
-
-
-
-[[boot-features-security-oauth2-single-sign-on]]
-==== Single Sign On
-An OAuth2 Client can be used to fetch user details from the provider (if such features are
-available) and then convert them into an `Authentication` token for Spring Security.
-The Resource Server above support this via the `user-info-uri` property This is the basis
-for a Single Sign On (SSO) protocol based on OAuth2, and Spring Boot makes it easy to
-participate by providing an annotation `@EnableOAuth2Sso`. The Github client above can
-protect all its resources and authenticate using the Github `/user/` endpoint, by adding
-that annotation and declaring where to find the endpoint (in addition to the
-`security.oauth2.client.*` configuration already listed above):
-
-.application.yml
-[source,yaml,indent=0]]
-----
-	security:
-		oauth2:
-	...
-		resource:
-			userInfoUri: https://api.github.com/user
-			preferTokenInfo: false
-----
-
-Since all paths are secure by default, there is no "`home`" page that you can show to
-unauthenticated users and invite them to login (by visiting the `/login` path, or the
-path specified by `security.oauth2.sso.login-path`).
-
-To customize the access rules or paths to protect, so you can add a "`home`" page for
-instance, `@EnableOAuth2Sso` can be added to a `WebSecurityConfigurerAdapter` and the
-annotation will cause it to be decorated and enhanced with the necessary pieces to get
-the `/login` path working. For example, here we simply allow unauthenticated access
-to the home page at "/" and keep the default for everything else:
-
-[source,java,indent=0]
-----
-include::{code-examples}/web/security/UnauthenticatedAccessExample.java[tag=configuration]
-----
-
-
-
 [[boot-features-security-actuator]]
 === Actuator Security
 If the Actuator is also in use, you will find:
@@ -3054,7 +2835,7 @@ auto-configured. In this example it's pulled in transitively via
 `spring-boot-starter-data-jpa`.
 
 TIP: If, for whatever reason, you do configure the connection URL for an embedded
-database, care should be taken to ensure that the database’s automatic shutdown is
+database, care should be taken to ensure that the database's automatic shutdown is
 disabled. If you're using H2 you should use `DB_CLOSE_ON_EXIT=FALSE` to do so. If you're
 using HSQLDB, you should ensure that `shutdown=true` is not used. Disabling the database's
 automatic shutdown allows Spring Boot to control when the database is closed, thereby
@@ -4279,7 +4060,7 @@ If the connection to InfluxDB requires a user and password, you can set the
 `spring.influx.user` and `spring.influx.password` properties accordingly.
 
 InfluxDB relies on OkHttp. If you need to tune the http client `InfluxDB` uses behind the
-scenes, you can register a `OkHttpClient.Builder` bean.
+scenes, you can register an `OkHttpClient.Builder` bean.
 
 
 
@@ -4443,7 +4224,7 @@ There are several ways to customize the underlying `javax.cache.cacheManager`:
   invoked with the reference of the `CacheManager` for full customization.
 
 TIP: If a standard `javax.cache.CacheManager` bean is defined, it is wrapped
-automatically in a `org.springframework.cache.CacheManager` implementation that the
+automatically in an `org.springframework.cache.CacheManager` implementation that the
 abstraction expects. No further customization is applied on it.
 
 
@@ -4561,7 +4342,7 @@ recommend to keep this setting enabled if you create your own `RedisCacheManager
 
 [[boot-features-caching-provider-caffeine]]
 ==== Caffeine
-Caffeine is a Java 8 rewrite of Guava’s cache that supersede the Guava support. If
+Caffeine is a Java 8 rewrite of Guava's cache that supersede the Guava support. If
 Caffeine is present, a `CaffeineCacheManager` (provided by the
 `spring-boot-starter-cache` '`Starter`') is auto-configured. Caches can be created
 on startup using the `spring.cache.cache-names` property and customized by one of the
@@ -5585,7 +5366,7 @@ Spring Boot provides Spring Session auto-configuration for a wide range of store
 * JDBC
 * Redis
 * Hazelcast
-* HashMap
+* MongoDB
 
 If Spring Session is available, you must choose the
 {sc-spring-boot-autoconfigure}/session/StoreType.{sc-ext}[`StoreType`] that you wish to
@@ -5894,16 +5675,21 @@ TIP: It's also possible to use the `@AutoConfigure...` annotations with the stan
 [[boot-features-testing-spring-boot-applications-testing-autoconfigured-json-tests]]
 ==== Auto-configured JSON tests
 To test that Object JSON serialization and deserialization is working as expected you can
-use the `@JsonTest` annotation. `@JsonTest` will auto-configure Jackson `ObjectMapper`,
-any `@JsonComponent` beans and any Jackson `Modules`. It also configures `Gson`
-if you happen to be using that instead of, or as well as, Jackson. If you need to
-configure elements of the auto-configuration you can use the `@AutoConfigureJsonTesters`
-annotation.
+use the `@JsonTest` annotation. `@JsonTest` will auto-configure the available supported
+json mapper:
+
+* Jackson `ObjectMapper`, any `@JsonComponent` beans and any Jackson `Modules`
+* `Gson`
+* `Jsonb`
+
+If you need to configure elements of the auto-configuration you can use the
+`@AutoConfigureJsonTesters` annotation.
 
 Spring Boot includes AssertJ based helpers that work with the JSONassert and JsonPath
-libraries to check that JSON is as expected. The `JacksonTester`, `GsonTester` and
-`BasicJsonTester` classes can be used for Jackson, Gson and Strings respectively. Any
-helper fields on the test class can be `@Autowired` when using `@JsonTest`.
+libraries to check that JSON is as expected. The `JacksonTester`, `GsonTester`,
+`JsonbTester` and `BasicJsonTester` classes can be used for Jackson, Gson, Jsonb and
+Strings respectively. Any helper fields on the test class can be `@Autowired` when using
+`@JsonTest`.
 
 [source,java,indent=0]
 ----
@@ -6456,9 +6242,9 @@ A list of the auto-configuration that is enabled by `@DataLdapTest` can be
 [[boot-features-testing-spring-boot-applications-testing-autoconfigured-rest-client]]
 ==== Auto-configured REST clients
 The `@RestClientTest` annotation can be used if you want to test REST clients. By default
-it will auto-configure Jackson and GSON support, configure a `RestTemplateBuilder` and
-add support for `MockRestServiceServer`. The specific beans that you want to test should
-be specified using `value` or `components` attribute of `@RestClientTest`:
+it will auto-configure Jackson, GSON and Jsonb support, configure a `RestTemplateBuilder`
+and add support for `MockRestServiceServer`. The specific beans that you want to test
+should be specified using `value` or `components` attribute of `@RestClientTest`:
 
 
 [source,java,indent=0]

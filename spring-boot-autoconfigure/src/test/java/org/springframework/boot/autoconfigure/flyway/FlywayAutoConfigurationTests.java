@@ -38,8 +38,9 @@ import org.mockito.InOrder;
 
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.boot.autoconfigure.context.PropertyPlaceholderAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.autoconfigure.jdbc.EmbeddedDataSourceConfiguration;
+import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.boot.jdbc.SchemaManagement;
 import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -95,8 +96,8 @@ public class FlywayAutoConfigurationTests {
 
 	@Test
 	public void createDataSource() throws Exception {
-		TestPropertyValues.of("spring.flyway.url:jdbc:hsqldb:mem:flywaytest", "spring.flyway.user:sa")
-				.applyTo(this.context);
+		TestPropertyValues.of("spring.flyway.url:jdbc:hsqldb:mem:flywaytest",
+				"spring.flyway.user:sa").applyTo(this.context);
 		registerAndRefresh(EmbeddedDataSourceConfiguration.class,
 				FlywayAutoConfiguration.class,
 				PropertyPlaceholderAutoConfiguration.class);
@@ -112,6 +113,21 @@ public class FlywayAutoConfigurationTests {
 		Flyway flyway = this.context.getBean(Flyway.class);
 		assertThat(flyway.getDataSource())
 				.isEqualTo(this.context.getBean("flywayDataSource"));
+	}
+
+	@Test
+	public void schemaManagementProviderDetectsDataSource() throws Exception {
+		registerAndRefresh(FlywayDataSourceConfiguration.class,
+				EmbeddedDataSourceConfiguration.class, FlywayAutoConfiguration.class,
+				PropertyPlaceholderAutoConfiguration.class);
+		FlywaySchemaManagementProvider schemaManagementProvider = this.context
+				.getBean(FlywaySchemaManagementProvider.class);
+		assertThat(schemaManagementProvider
+				.getSchemaManagement(this.context.getBean(DataSource.class)))
+						.isEqualTo(SchemaManagement.UNMANAGED);
+		assertThat(schemaManagementProvider.getSchemaManagement(
+				this.context.getBean("flywayDataSource", DataSource.class)))
+						.isEqualTo(SchemaManagement.MANAGED);
 	}
 
 	@Test
@@ -162,7 +178,8 @@ public class FlywayAutoConfigurationTests {
 
 	@Test
 	public void changeLogDoesNotExist() throws Exception {
-		TestPropertyValues.of("spring.flyway.locations:file:no-such-dir").applyTo(this.context);
+		TestPropertyValues.of("spring.flyway.locations:file:no-such-dir")
+				.applyTo(this.context);
 		this.thrown.expect(BeanCreationException.class);
 		registerAndRefresh(EmbeddedDataSourceConfiguration.class,
 				FlywayAutoConfiguration.class,

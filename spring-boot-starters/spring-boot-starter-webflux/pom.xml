@@ -32,7 +32,7 @@
 			<artifactId>spring-boot-starter-reactor-netty</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>org.hibernate</groupId>
+			<groupId>org.hibernate.validator</groupId>
 			<artifactId>hibernate-validator</artifactId>
 		</dependency>
 		<dependency>
@@ -42,6 +42,10 @@
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-webflux</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.synchronoss.cloud</groupId>
+			<artifactId>nio-multipart-parser</artifactId>
 		</dependency>
 	</dependencies>
 </project>

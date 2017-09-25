@@ -105,8 +105,10 @@ public class SampleMethodSecurityApplicationTests {
 
 	@Test
 	public void testManagementProtected() throws Exception {
-		ResponseEntity<String> entity = this.restTemplate
-				.getForEntity("/application/beans", String.class);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+		ResponseEntity<String> entity = this.restTemplate.exchange("/application/beans",
+				HttpMethod.GET, new HttpEntity<Void>(headers), String.class);
 		assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
 	}
 

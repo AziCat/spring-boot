@@ -17,6 +17,8 @@
 package org.springframework.boot.autoconfigure.liquibase;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.List;
 
 import javax.annotation.PostConstruct;
 import javax.persistence.EntityManagerFactory;
@@ -34,9 +36,9 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.data.jpa.EntityManagerFactoryDependsOnPostProcessor;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
 import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
@@ -64,6 +66,13 @@ import org.springframework.util.ReflectionUtils;
 @AutoConfigureAfter({ DataSourceAutoConfiguration.class,
 		HibernateJpaAutoConfiguration.class })
 public class LiquibaseAutoConfiguration {
+
+	@Bean
+	public LiquibaseSchemaManagementProvider liquibaseDefaultDdlModeProvider(
+			ObjectProvider<List<SpringLiquibase>> liquibases) {
+		return new LiquibaseSchemaManagementProvider(
+				liquibases.getIfAvailable(Collections::emptyList));
+	}
 
 	@Configuration
 	@ConditionalOnMissingBean(SpringLiquibase.class)

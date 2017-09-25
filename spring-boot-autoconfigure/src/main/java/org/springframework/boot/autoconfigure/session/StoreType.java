@@ -32,6 +32,11 @@ public enum StoreType {
 	REDIS,
 
 	/**
+	 * Mongo backed sessions.
+	 */
+	MONGO,
+
+	/**
 	 * JDBC backed sessions.
 	 */
 	JDBC,
@@ -40,11 +45,6 @@ public enum StoreType {
 	 * Hazelcast backed sessions.
 	 */
 	HAZELCAST,
-
-	/**
-	 * Simple in-memory map of sessions.
-	 */
-	HASH_MAP,
 
 	/**
 	 * No session data-store.

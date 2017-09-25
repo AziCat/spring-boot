@@ -24,8 +24,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
-
-import com.google.common.collect.Streams;
+import java.util.stream.StreamSupport;
 
 import org.springframework.boot.context.properties.source.ConfigurationPropertySources;
 import org.springframework.context.ApplicationContext;
@@ -61,7 +60,7 @@ public final class TestPropertyValues {
 
 	/**
 	 * Builder method to add more properties.
-	 * @param pairs The property pairs to add
+	 * @param pairs the property pairs to add
 	 * @return a new {@link TestPropertyValues} instance
 	 */
 	public TestPropertyValues and(String... pairs) {
@@ -120,7 +119,7 @@ public final class TestPropertyValues {
 
 	/**
 	 * Add the properties to the {@link System#getProperties() system properties} for the
-	 * duration of the {@code call}, restoring previous values then the call completes.
+	 * duration of the {@code call}, restoring previous values when the call completes.
 	 * @param <T> the result type
 	 * @param call the call to make
 	 * @return the result of the call
@@ -159,7 +158,7 @@ public final class TestPropertyValues {
 	 * Return a new {@link TestPropertyValues} with the underlying map populated with the
 	 * given property pairs. Name-value pairs can be specified with colon (":") or equals
 	 * ("=") separators.
-	 * @param pairs The key value pairs for properties that need to be added to the
+	 * @param pairs the name-value pairs for properties that need to be added to the
 	 * environment
 	 * @return the new instance
 	 */
@@ -171,7 +170,7 @@ public final class TestPropertyValues {
 	 * Return a new {@link TestPropertyValues} with the underlying map populated with the
 	 * given property pairs. Name-value pairs can be specified with colon (":") or equals
 	 * ("=") separators.
-	 * @param pairs The key value pairs for properties that need to be added to the
+	 * @param pairs the name-value pairs for properties that need to be added to the
 	 * environment
 	 * @return the new instance
 	 */
@@ -179,14 +178,14 @@ public final class TestPropertyValues {
 		if (pairs == null) {
 			return empty();
 		}
-		return of(Streams.stream(pairs));
+		return of(StreamSupport.stream(pairs.spliterator(), false));
 	}
 
 	/**
 	 * Return a new {@link TestPropertyValues} with the underlying map populated with the
 	 * given property pairs. Name-value pairs can be specified with colon (":") or equals
 	 * ("=") separators.
-	 * @param pairs The key value pairs for properties that need to be added to the
+	 * @param pairs the name-value pairs for properties that need to be added to the
 	 * environment
 	 * @return the new instance
 	 */
@@ -198,7 +197,7 @@ public final class TestPropertyValues {
 	}
 
 	/**
-	 * Return a new empty {@link TestPropertyValues} instance.
+	 * Return an empty {@link TestPropertyValues} instance.
 	 * @return an empty instance
 	 */
 	public static TestPropertyValues empty() {
@@ -253,9 +252,9 @@ public final class TestPropertyValues {
 
 		public static Pair parse(String pair) {
 			int index = getSeparatorIndex(pair);
-			String key = pair.substring(0, index > 0 ? index : pair.length());
-			String value = index > 0 ? pair.substring(index + 1) : "";
-			return of(key.trim(), value.trim());
+			String name = (index > 0 ? pair.substring(0, index) : pair);
+			String value = (index > 0 ? pair.substring(index + 1) : "");
+			return of(name.trim(), value.trim());
 		}
 
 		private static int getSeparatorIndex(String pair) {
@@ -284,13 +283,10 @@ public final class TestPropertyValues {
 	 */
 	private class SystemPropertiesHandler implements Closeable {
 
-		private final Map<String, Object> properties;
-
 		private final Map<String, String> previous;
 
 		SystemPropertiesHandler() {
-			this.properties = new LinkedHashMap<>(TestPropertyValues.this.properties);
-			this.previous = apply(this.properties);
+			this.previous = apply(TestPropertyValues.this.properties);
 		}
 
 		private Map<String, String> apply(Map<String, ?> properties) {

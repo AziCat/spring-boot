@@ -22,9 +22,7 @@ import java.util.List;
 
 import javax.validation.ValidatorFactory;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.boot.autoconfigure.validation.ValidationAutoConfiguration;
@@ -73,9 +71,6 @@ import static org.mockito.Mockito.verify;
  * @author Andy Wilkinson
  */
 public class WebFluxAutoConfigurationTests {
-
-	@Rule
-	public ExpectedException thrown = ExpectedException.none();
 
 	private GenericReactiveWebApplicationContext context;
 
@@ -132,7 +127,7 @@ public class WebFluxAutoConfigurationTests {
 				SimpleUrlHandlerMapping.class);
 		assertThat(hm.getUrlMap().get("/**")).isInstanceOf(ResourceWebHandler.class);
 		ResourceWebHandler staticHandler = (ResourceWebHandler) hm.getUrlMap().get("/**");
-		assertThat(staticHandler.getLocations()).hasSize(5);
+		assertThat(staticHandler.getLocations()).hasSize(4);
 		assertThat(hm.getUrlMap().get("/webjars/**"))
 				.isInstanceOf(ResourceWebHandler.class);
 		ResourceWebHandler webjarsHandler = (ResourceWebHandler) hm.getUrlMap()
@@ -151,7 +146,7 @@ public class WebFluxAutoConfigurationTests {
 				.isInstanceOf(ResourceWebHandler.class);
 		ResourceWebHandler staticHandler = (ResourceWebHandler) hm.getUrlMap()
 				.get("/static/**");
-		assertThat(staticHandler.getLocations()).hasSize(5);
+		assertThat(staticHandler.getLocations()).hasSize(4);
 	}
 
 	@Test

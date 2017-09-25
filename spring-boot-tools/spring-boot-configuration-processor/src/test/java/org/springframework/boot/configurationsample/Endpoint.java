@@ -35,16 +35,8 @@ public @interface Endpoint {
 
 	String id();
 
-	boolean enabledByDefault() default true;
+	DefaultEnablement defaultEnablement() default DefaultEnablement.NEUTRAL;
 
-	Type[] types() default {};
-
-	enum Type {
-
-		JMX,
-
-		WEB
-
-	}
+	EndpointExposure[] exposure() default {};
 
 }

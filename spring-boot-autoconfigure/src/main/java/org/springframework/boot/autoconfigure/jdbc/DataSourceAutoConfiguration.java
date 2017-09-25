@@ -31,6 +31,7 @@ import org.springframework.boot.autoconfigure.condition.SpringBootCondition;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceInitializerPostProcessor.Registrar;
 import org.springframework.boot.autoconfigure.jdbc.metadata.DataSourcePoolMetadataProvidersConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
 import org.springframework.boot.jdbc.EmbeddedDatabaseConnection;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -130,8 +131,8 @@ public class DataSourceAutoConfiguration {
 		 * @return the class loader
 		 */
 		private ClassLoader getDataSourceClassLoader(ConditionContext context) {
-			Class<?> dataSourceClass = new DataSourceBuilder(context.getClassLoader())
-					.findType();
+			Class<?> dataSourceClass = DataSourceBuilder
+					.findType(context.getClassLoader());
 			return (dataSourceClass == null ? null : dataSourceClass.getClassLoader());
 		}
 
